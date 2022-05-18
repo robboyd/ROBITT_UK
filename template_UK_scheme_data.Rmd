@@ -42,7 +42,7 @@ To estimate temporal trends in species' occupancy (proportion of occupied grid c
 
 **2.3 From where were your data acquired (please provide citations, including a DOI, wherever possible)? What are their key features in respect of the inferential aims of your study (see the guidance document for examples)?**
 
-The data are presence-only records of soldierfly occurrences recorded in the UK from 1990-2020.
+The data are presence-only records of soldierfly occurrences recorded in the UK from 1990-2020. My code can be seen below, along with some metadata documenting the provenance of the data.
 
 ```{r}
 dat <- read.csv("W:/PYWELL_SHARED/Pywell Projects/BRC/_BRC_dataflow/Research Datasets/Soldierflies/2022/Research dataset/Soldierflies_2022.csv")
@@ -60,9 +60,11 @@ dat$date_of_capture[1]
 
 **2.4 Provide details of, and the justification for, all of the steps that you have taken to clean the data described above prior to analyses.**
 
-I modified the data described above in three ways. First, I removed records that were not resolved to one day. Second, I removed records that were duplicated in terms of date, grid cell and species name. And finally, I reprojected records collected in Northern Ireland from the Irish national grid (OSNI 1951) to the British national grid (OSGB 1936).
+I modified the data described above in three ways. First, I removed records that were not resolved to one day. Second, I removed records that were duplicated in terms of date, grid cell and species name. And finally, I reprojected records collected in Northern Ireland from the Irish national grid (OSNI 1951) to the British national grid (OSGB 1936). My code can be seen below. 
 
 ```{r}
+library(BRCmap)
+
 ## process species occurrence data
 
 # first remove data not resolved to one day
@@ -134,9 +136,10 @@ dat$spatialUncertainty <- 1000
 
 head(dat)
 
-## now create a second dataset with just the repeat visits 
+## now create a second dataset with just the repeat visits (visits to the same site in the same year but on different dates)
 
-repeats <- dat[which(duplicated(dat[, c("EASTING", "NORTHING", "startdate")])), ]
+repeats <- dat[which(duplicated(dat[, c("EASTING", "NORTHING", "year")]) &
+        !duplicated(dat[, c("EASTING", "NORTHING", "startdate")])), ]
 
 repeats$identifier <- "repeat_visits" # set identifier to distinguish from the rest
 
@@ -158,7 +161,100 @@ I conducted the bias assessment at spatial and temporal resolutions of 1km and o
 
 **3.2 Are the data sampled from a representative portion of geographical space in the domain of interest?** 
 
-<insert text>
+To assess the geographic representativness of the data, I used what is called the Nearest Neighbour Index (NNI). The NNI is the ratio of the average nearest neighbour distances of the centroids of grid cells with records to the average nearest neighbour distances of simulated random distributions of the same density. Where the NNI is below 1, the data more clustered than a random distribution; where it is about 1, the data are approximately randomly distributed; and where it falls above 1, the data are overdispersed. Fig 1. clearly shows that the data are more clustered than a random distribution. 
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 1. Nearest neighbour index calculated for each year. The shaded band denotes the 5th to 95th percentiles calculated by bootstrapping over five simulated distributions."}
+
+mask <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/SDMOutputs_Jan_Feb_2021/Bryophytes/Bry_986_LPT_1.asc") # mask layer needed to delimit the geographic domain. This is just a raster of the UK at 1km
+
+# define time periods for analysis as required by occAssess
+
+periods <- as.list(1970:2020)
+
+NNI <- occAssess::assessSpatialBias(dat = dat,
+                         periods = periods, 
+                         nSamps = 2,
+                         degrade = TRUE,
+                         mask = mask,
+                         species = "recommended_name", 
+                         year = "year",
+                         identifier = "identifier",
+                         x = "EASTING", 
+                         y = "NORTHING",
+                         spatialUncertainty = "spatialUncertainty",) 
+
+
+ggplot2::ggplot(data = NNI$data, ggplot2::aes(x = as.numeric(Period) + 1969, y = mean,
+                            group = identifier, fill = identifier,
+                            colour = identifier)) + 
+  ggplot2::geom_line() + 
+  ggplot2::theme_linedraw() +
+  ggplot2::xlab("Year") +
+  ggplot2::ylab("NNI") +
+  ggplot2::geom_hline(yintercept = 1, colour = "red") +
+  ggplot2::geom_ribbon(ggplot2::aes(ymin = lower, ymax = upper),
+              alpha = 0.3) +
+  ggplot2::labs(group = "",
+       fill = "",
+       colour = "") +
+  ggplot2::theme(text = ggplot2::element_text(size = 25)) 
+```
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 2. 1km grid cells in which at least one species was recorded between 1990 and 2020."}
+## load required data 
+
+# UK shapefile from BRCmap
+
+data(UK)
+
+shp <- UK[UK$REGION == "Great Britain", ]
+
+shp2 <- UK[UK$REGION == "Ireland", ]
+
+# fortify shapefile for use with ggplot2
+
+mapGB <- ggplot2::fortify(shp)
+
+mapIr <- ggplot2::fortify(shp2)
+
+# map grid cells sampled at some point 
+
+spatCov <- occAssess::assessSpatialCov(periods = periods,
+                                       dat = dat,
+                                       species = "recommended_name", 
+                                       year = "year",
+                                       identifier = "identifier",
+                                       x = "EASTING", 
+                                       y = "NORTHING",
+                                       spatialUncertainty = "spatialUncertainty",
+                                       res = 1000,
+                                       output = "overlap",
+                                       minPeriods = 1,
+                                       returnRaster = TRUE)
+
+myCol <- rgb(255, 255, 255, max = 255, alpha = 0, names = "blue50")
+
+rasterVis::gplot(spatCov$rasters) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value)) +
+  ggplot2::facet_wrap(~variable) +
+  ggplot2::geom_polygon(data = mapGB, ggplot2::aes(x = long, 
+                                          y = lat, group = group), colour = "black", 
+               fill = myCol, inherit.aes = F) +
+  ggplot2::geom_polygon(data = mapIr, ggplot2::aes(x = long, 
+                                          y = lat, group = group), colour = "black", 
+               fill = myCol, inherit.aes = F) +
+  ggplot2::theme_linedraw() +
+  ggplot2::theme(axis.text.x=ggplot2::element_blank(),
+        axis.text.y=ggplot2::element_blank()) +
+  ggplot2::labs(fill = "Proportion
+       of years
+       sampled") +
+  ggplot2::labs(x = "",
+       y = "") +
+  ggplot2::scale_fill_continuous(na.value = myCol) +
+  ggplot2::guides(fill = "none") +
+  ggplot2::theme(strip.text.x = ggplot2::element_text(size = 20))
+```
 
 **3.3 Are your data sampled from the same portions of geographic space across time periods?**
 

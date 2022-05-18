@@ -14,7 +14,7 @@ library(rasterVis)
 
 # UK shapefile from BRCmap
 
-data(UK)
+BRCmap::data(UK)
 
 shp <- UK[UK$REGION == "Great Britain", ]
 
@@ -41,6 +41,9 @@ dat <- dat[- which(dat$startdate != dat$enddate)]
 # then remove duplicates (in terms of species name, date and monad)
 
 dat <- dat[- which(duplicated(dat[, c("recommended_name", "startdate", "monad")]))]
+
+which(duplicated(dat[, c("year", "monad")]) &
+        !duplicated(dat$startdate))
 
 # drop columns that are not needed for analysis 
 
@@ -105,7 +108,8 @@ head(dat)
 
 ## now create a second dataset with just the repeat visits 
 
-repeats <- dat[which(duplicated(dat[, c("EASTING", "NORTHING", "startdate")])), ]
+repeats <- dat[which(duplicated(dat[, c("EASTING", "NORTHING", "year")]) &
+                       !duplicated(dat[, c("EASTING", "NORTHING", "startdate")])), ]
 
 repeats$identifier <- "repeat_visits" # set identifier to distinguish from the rest
 
@@ -120,6 +124,44 @@ dat <- rbind(dat, repeats)
 periods <- as.list(1970:2020)
 
 # assess the geographic representativeness of the data
+
+# map grid cells sampled at some point 
+
+spatCov <- assessSpatialCov(periods = periods,
+                            dat = dat,
+                            species = "recommended_name", 
+                            year = "year",
+                            identifier = "identifier",
+                            x = "EASTING", 
+                            y = "NORTHING",
+                            spatialUncertainty = "spatialUncertainty",
+                            res = 1000,
+                            output = "overlap",
+                            minPeriods = 1,
+                            returnRaster = TRUE)
+
+myCol <- rgb(255, 255, 255, max = 255, alpha = 0, names = "blue50")
+
+gplot(spatCov$rasters) +
+  geom_tile(aes(fill = value)) +
+  facet_wrap(~variable) +
+  geom_polygon(data = mapGB, ggplot2::aes(x = long, 
+                                          y = lat, group = group), colour = "black", 
+               fill = myCol, inherit.aes = F) +
+  geom_polygon(data = mapIr, ggplot2::aes(x = long, 
+                                          y = lat, group = group), colour = "black", 
+               fill = myCol, inherit.aes = F) +
+  theme_linedraw() +
+  theme(axis.text.x=ggplot2::element_blank(),
+        axis.text.y=ggplot2::element_blank()) +
+  labs(fill = "Proportion
+       of years
+       sampled") +
+  labs(x = "",
+       y = "") +
+  scale_fill_continuous(na.value = myCol) +
+  guides(fill = "none")
+
 
 # map of the density of records
 
