@@ -3,12 +3,12 @@
 #devtools::install_github("robboyd/occAssess")
 
 library(occAssess)
-library(soaR)
 library(BRCmap)
 library(rgdal)
 library(colorRamps)
 library(gridExtra)
 library(ggplot2)
+library(rasterVis)
 
 ## load required data 
 
@@ -97,13 +97,25 @@ dat$year <- substr(dat$startdate, 1, 4)
 
 # create identifier and sptialUncertainty fields (again, needed by occAssess)
 
-dat$identifier <- "soldierflies"
+dat$identifier <- "all_data"
 
 dat$spatialUncertainty <- 1000
 
+head(dat)
+
+## now create a second dataset with just the repeat visits 
+
+repeats <- dat[which(duplicated(dat[, c("EASTING", "NORTHING", "startdate")])), ]
+
+repeats$identifier <- "repeat_visits" # set identifier to distinguish from the rest
+
+# append to dat for analysis with occAssess
+
+dat <- rbind(dat, repeats)
+
 #### Now for the occAssess analysis 
 
-# set time periods in which data will be assessed
+# set time periods into which the data will be split and assessed
 
 periods <- as.list(1970:2020)
 
@@ -111,33 +123,7 @@ periods <- as.list(1970:2020)
 
 # map of the density of records
 
-spatCov <- assessSpatialCov(periods = list(1970:2020),
-                            dat = dat,
-                            species = "recommended_name", 
-                            year = "year",
-                            identifier = "identifier",
-                            x = "EASTING", 
-                            y = "NORTHING",
-                            spatialUncertainty = "spatialUncertainty",
-                            res = 1000,
-                            output = "density",
-                            logCount = FALSE)
-
-# plot map showing density of records
-
-myCol <- rgb(255, 255, 255, max = 255, alpha = 0, names = "blue50")
-
-spatCov$soldierflies +
-  geom_polygon(data = mapGB, ggplot2::aes(x = long, 
-                                          y = lat, group = group), colour = "black", 
-               fill = myCol, inherit.aes = F) +
-  geom_polygon(data = mapIr, ggplot2::aes(x = long, 
-                                          y = lat, group = group), colour = "black", 
-               fill = myCol, inherit.aes = F)
-
-# map showing the number of years in which each grid cell has been sampled
-
-spatCov2 <- assessSpatialCov(periods = periods,
+spatCov <- assessSpatialCov(periods = periods,
                             dat = dat,
                             species = "recommended_name", 
                             year = "year",
@@ -147,16 +133,64 @@ spatCov2 <- assessSpatialCov(periods = periods,
                             spatialUncertainty = "spatialUncertainty",
                             res = 1000,
                             output = "nPeriods",
-                            logCount = FALSE)
+                            logCount = FALSE,
+                            returnRaster = TRUE)
 
-spatCov2$soldierflies + 
+
+# plot map showing density of records
+
+myCol <- rgb(255, 255, 255, max = 255, alpha = 0, names = "blue50")
+
+gplot(spatCov$rasters) +
+  geom_tile(aes(fill = value / 51)) +
+  facet_wrap(~variable) +
   geom_polygon(data = mapGB, ggplot2::aes(x = long, 
                                           y = lat, group = group), colour = "black", 
                fill = myCol, inherit.aes = F) +
   geom_polygon(data = mapIr, ggplot2::aes(x = long, 
                                           y = lat, group = group), colour = "black", 
                fill = myCol, inherit.aes = F) +
-  scale_fill_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0.4, na.value = myCol) 
+  scale_fill_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0.4, na.value = myCol) + 
+  theme_linedraw() +
+  theme(axis.text.x=element_blank(),
+        axis.text.y=element_blank()) +
+  labs(fill = "Proportion
+of years
+sampled") +
+  labs(x = "",
+       y = "") 
+
+# nearest neighbour index indicating whether the data are randomly distributed
+
+mask <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/SDMOutputs_Jan_Feb_2021/Bryophytes/Bry_986_LPT_1.asc")
+
+NNI <- assessSpatialBias(dat = dat,
+                         periods = periods, 
+                         nSamps = 20,
+                         degrade = TRUE,
+                         mask = mask,
+                         species = "recommended_name", 
+                         year = "year",
+                         identifier = "identifier",
+                         x = "EASTING", 
+                         y = "NORTHING",
+                         spatialUncertainty = "spatialUncertainty",) 
+
+
+ggplot(data = NNI$data, aes(x = as.numeric(Period) + 1969, y = mean,
+                            group = identifier, fill = identifier,
+                            colour = identifier)) + 
+  geom_line() + 
+  theme_linedraw() +
+  xlab("Year") +
+  ylab("NNI") +
+  geom_hline(yintercept = 1, colour = "red") +
+  geom_ribbon(aes(ymin = lower, ymax = upper),
+              alpha = 0.3) +
+  labs(group = "",
+       fill = "",
+       colour = "")
+
 
 assessRecordNumber(periods = periods,
                    dat = dat,

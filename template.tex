@@ -1,0 +1,212 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage[unicode=true]{hyperref}
+\hypersetup{
+            pdftitle={ROBITT\_template},
+            pdfauthor={Rob Boyd},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+\title{ROBITT\_template}
+\author{Rob Boyd}
+\date{18 May 2022}
+
+\begin{document}
+\maketitle
+
+\section{1. Iteration}\label{iteration}
+
+\subsubsection{1.1 ROBITT iteration
+number}\label{robitt-iteration-number}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+Iteration & Comments &\tabularnewline
+\midrule
+\endhead
+& &\tabularnewline
+\bottomrule
+\end{longtable}
+
+\section{2. Research statement and pre-bias
+assessments}\label{research-statement-and-pre-bias-assessments}
+
+\subsection{Statistical population of
+interest}\label{statistical-population-of-interest}
+
+\textbf{2.1 Define the statistical target population about which you
+intend to make inferences.}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+\begin{minipage}[b]{0.05\columnwidth}\raggedright\strut
+Domain\strut
+\end{minipage} & \begin{minipage}[b]{0.05\columnwidth}\raggedright\strut
+Extent\strut
+\end{minipage} & \begin{minipage}[b]{0.05\columnwidth}\raggedright\strut
+Resolution\strut
+\end{minipage}\tabularnewline
+\midrule
+\endhead
+\begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+Geographic\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+Temporal\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+Taxonomic (or other relevant organismal domain such as functional group
+etc.)\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+Environmental\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage} & \begin{minipage}[t]{0.05\columnwidth}\raggedright\strut
+\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+\section{Inferential goals}\label{inferential-goals}
+
+\textbf{2.2 What are your inferential goals?}
+
+\subsection{Data provenance}\label{data-provenance}
+
+\textbf{2.3 From where were your data acquired (please provide
+citations, including a DOI, wherever possible)? What are their key
+features in respect of the inferential aims of your study (see the
+guidance document for examples)?}
+
+\subsection{Data processing}\label{data-processing}
+
+\textbf{2.4 Provide details of, and the justification for, all of the
+steps that you have taken to clean the data described above prior to
+analyses.}
+
+\section{3. Bias assessment and
+mitigation}\label{bias-assessment-and-mitigation}
+
+\subsection{Assessment resolutions}\label{assessment-resolutions}
+
+\textbf{3.1 At what geographic, temporal and taxonomic resolutions
+(i.e.~scales or grain sizes) will you conduct your bias assessment?}
+
+\subsection{Geographic domain}\label{geographic-domain}
+
+\textbf{3.2 Are the data sampled from a representative portion of
+geographical space in the domain of interest?}
+
+\textbf{3.3 Are your data sampled from the same portions of geographic
+space across time periods?}
+
+\textbf{3.4 If the answers to the above questions revealed any potential
+geographic biases, or temporal variation in geographic coverage, please
+explain, in detail, how you plan to mitigate them.}
+
+\subsection{Environmental domain}\label{environmental-domain}
+
+\textbf{3.5 Are your data sampled from a representative portion of
+environmental space in the domain of interest?}
+
+\textbf{3.6 Are your data sampled from the same portion of environmental
+space across time periods?}
+
+\textbf{3.7 If the answers to the above questions revealed any potential
+environmental biases, or temporal variation in environmental coverage,
+please explain, in detail, how you plan to mitigate them.}
+
+\subsection{Taxonomic domain (or other organismal domain, e.g.,
+phylogenetic, trait space
+etc.)}\label{taxonomic-domain-or-other-organismal-domain-e.g.-phylogenetic-trait-space-etc.}
+
+\textbf{Is the sampled portion of the taxonomic (or phylogenetic, trait
+or other space if more relevant) space representative of the taxonomic
+(or other) domain of interest?}
+
+\textbf{3.9 Do your data pertain to the same taxa/taxonomic domain
+across time periods?}
+
+\textbf{3.10 If the answers to the above questions revealed any
+potential taxonomic biases, or temporal variation in taxonomic coverage,
+please explain, in detail, how you plan to mitigate them.}
+
+\subsection{Other potential biases}\label{other-potential-biases}
+
+\textbf{3.11 Are there other potential temporal biases in your data that
+relate to variables other than ecological states?}
+
+\textbf{3.12 Are you aware of any other potential biases not covered by
+the above questions that might cause problems for your inferences?}
+
+\textbf{3.13 If questions 3.11 or 3.12 revealed any important potential
+biases, please explain how you will mitigate them.}
+
+\section{4. Supporting references}\label{supporting-references}
+
+\end{document}

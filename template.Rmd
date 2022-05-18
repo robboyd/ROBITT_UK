@@ -1,0 +1,120 @@
+---
+title: "ROBITT_template"
+author: "Rob Boyd"
+date: "18 May 2022"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# 1.	Iteration
+
+### 1.1 ROBITT iteration number
+
+|Iteration |Comments  |
+--- | --- | ---|
+|||
+	
+# 2.	Research statement and pre-bias assessments
+
+## Statistical population of interest
+
+**2.1 Define the statistical target population about which you intend to make inferences.**
+
+|Domain |Extent  | Resolution|
+--- | --- | ---|
+|Geographic|||
+|Temporal|||
+|Taxonomic (or other relevant organismal domain such as functional group etc.)|||
+|Environmental|||
+
+# Inferential goals
+
+**2.2 What are your inferential goals?** 
+
+<insert text>
+
+## Data provenance
+
+**2.3 From where were your data acquired (please provide citations, including a DOI, wherever possible)? What are their key features in respect of the inferential aims of your study (see the guidance document for examples)?**
+
+<insert text>
+
+## Data processing
+
+**2.4 Provide details of, and the justification for, all of the steps that you have taken to clean the data described above prior to analyses.**
+
+<insert text>
+
+# 3.	Bias assessment and mitigation
+
+## Assessment resolutions
+
+**3.1 At what geographic, temporal and taxonomic resolutions (i.e. scales or grain sizes) will you conduct your bias assessment?**
+
+<insert text>
+
+## Geographic domain
+
+**3.2 Are the data sampled from a representative portion of geographical space in the domain of interest?** 
+
+<insert text>
+
+**3.3 Are your data sampled from the same portions of geographic space across time periods?**
+
+<insert text>
+
+**3.4 If the answers to the above questions revealed any potential geographic biases, or temporal variation in geographic coverage, please explain, in detail, how you plan to mitigate them.** 
+
+<insert text>
+
+## Environmental domain
+
+**3.5 Are your data sampled from a representative portion of environmental space in the domain of interest?** 
+
+<insert text>
+
+**3.6 Are your data sampled from the same portion of environmental space across time periods?**
+
+<insert text>
+
+**3.7 If the answers to the above questions revealed any potential environmental biases, or temporal variation in environmental coverage, please explain, in detail, how you plan to mitigate them.** 
+
+<insert text>
+
+## Taxonomic domain (or other organismal domain, e.g., phylogenetic, trait space etc.)
+
+**Is the sampled portion of the taxonomic (or phylogenetic, trait or other space if more relevant) space representative of the taxonomic (or other) domain of interest?**
+
+<insert text>
+
+**3.9 Do your data pertain to the same taxa/taxonomic domain across time periods?** 
+
+<insert text>
+
+**3.10 If the answers to the above questions revealed any potential taxonomic biases, or temporal variation in taxonomic coverage, please explain, in detail, how you plan to mitigate them.** 
+
+<insert text>
+
+## Other potential biases
+
+**3.11 Are there other potential temporal biases in your data that relate to variables other than ecological states?**
+
+<insert text>
+
+**3.12 Are you aware of any other potential biases not covered by the above questions that might cause problems for your inferences?**
+
+<insert text>
+
+**3.13 If questions 3.11 or 3.12 revealed any important potential biases, please explain how you will mitigate them.**
+
+<insert text>
+
+# 4.	Supporting references
+
+<insert text>
+
