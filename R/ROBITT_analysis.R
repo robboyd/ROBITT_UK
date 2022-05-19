@@ -181,25 +181,29 @@ spatCov <- assessSpatialCov(periods = periods,
 
 # plot map showing density of records
 
+mean(raster::getValues(spatCov$rasters$all_data), na.rm=T) / 51
+
+mean(raster::getValues(spatCov$rasters$repeat_visits), na.rm=T) / 51
+
 myCol <- rgb(255, 255, 255, max = 255, alpha = 0, names = "blue50")
 
-gplot(spatCov$rasters) +
-  geom_tile(aes(fill = value / 51)) +
-  facet_wrap(~variable) +
-  geom_polygon(data = mapGB, ggplot2::aes(x = long, 
+rasterVis::gplot(spatCov$rasters) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value / 51)) +
+  ggplot2::facet_wrap(~variable) +
+  ggplot2::geom_polygon(data = mapGB, ggplot2::aes(x = long, 
                                           y = lat, group = group), colour = "black", 
                fill = myCol, inherit.aes = F) +
-  geom_polygon(data = mapIr, ggplot2::aes(x = long, 
+  ggplot2::geom_polygon(data = mapIr, ggplot2::aes(x = long, 
                                           y = lat, group = group), colour = "black", 
                fill = myCol, inherit.aes = F) +
-  scale_fill_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0.4, na.value = myCol) + 
-  theme_linedraw() +
-  theme(axis.text.x=element_blank(),
-        axis.text.y=element_blank()) +
-  labs(fill = "Proportion
+  ggplot2::scale_fill_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0.4, na.value = myCol) + 
+  ggplot2::theme_linedraw() +
+  ggplot2::theme(axis.text.x=ggplot2::element_blank(),
+        axis.text.y=ggplot2::element_blank()) +
+  ggplot2::labs(fill = "Proportion
 of years
 sampled") +
-  labs(x = "",
+  ggplot2::labs(x = "",
        y = "") 
 
 # nearest neighbour index indicating whether the data are randomly distributed
@@ -234,22 +238,15 @@ ggplot(data = NNI$data, aes(x = as.numeric(Period) + 1969, y = mean,
        colour = "")
 
 
-assessRecordNumber(periods = periods,
-                   dat = dat,
-                   species = "recommended_name", 
-                   year = "year",
-                   identifier = "identifier",
-                   x = "EASTING", 
-                   y = "NORTHING",
-                   spatialUncertainty = "spatialUncertainty")
+lc <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/targetLandCover2007/selectedCovs/built_up.asc")
 
-assessSpeciesNumber(periods = periods,
-                   dat = dat,
-                   species = "recommended_name", 
-                   year = "year",
-                   identifier = "identifier",
-                   x = "EASTING", 
-                   y = "NORTHING",
-                   spatialUncertainty = "spatialUncertainty")
+dat$built_up <- raster::extract(lc, 
+                                cbind(dat$EASTING, dat$NORTHING))
 
-
+ggplot(data=dat[dat$year>=1970, ], aes(x=year, y=built_up, fill=identifier)) +
+  geom_boxplot() +
+  theme_linedraw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(x = "",
+       y = "Proportion of cell classed as built up") +
+  labs(fill = "")

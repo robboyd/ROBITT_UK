@@ -7,6 +7,13 @@ output:
   pdf_document: default
   html_document: default
 ---
+# Background
+
+In this document I use ROBITT to assess the suitability of data from the Soldierflies and Allies recording scheme for the estimation of temporal trends in species' distributions. ROBITT comprises a number of questions designed to elicit information on the potential for biases in the data to undermine trend estimation. Generally, I answer each question using text and figures. I also provide the R code used to generate the figures and some simple statistics. Readers should not feel compelled to read the R code; the document is discernible without it.
+
+In the BRC we have been developing a workflow to estimate trends in species' distributions from the type of data assessed here. This workflow is built on what is called an occupancy-detection model. This model uses data from repeat visits to the same location (here 1km grid cell) in the same year to estimate species' detection probabilities. For this reason I conduct this ROBITT assessment both on the dataset as a whole, and on the subset of data that are repeat visits. 
+
+This Rmarkdown document relies on data stored on UK CEH's W (shared) drive. If you do not have access to this drive, then it will not work. All members of the BRC should have access. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -36,18 +43,26 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **2.2 What are your inferential goals?** 
 
-To estimate temporal trends in species' occupancy (proportion of occupied grid cells). The individual species trends will be "averaged" to construct a multispecies indicator of change. 
+To 1) estimate temporal trends in species' occupancy (proportion of occupied grid cells), and 2) combine the individual species' trends to produce a multispecies indicator. 
 
 ## Data provenance
 
 **2.3 From where were your data acquired (please provide citations, including a DOI, wherever possible)? What are their key features in respect of the inferential aims of your study (see the guidance document for examples)?**
 
-The data are presence-only records of soldierfly occurrences recorded in the UK from 1990-2020. My code can be seen below, along with some metadata documenting the provenance of the data.
+The data are presence-only records of soldierfly occurrences recorded in the UK from 1990-2020. The data were collated by the Soldierfly and Allies recording scheme and accessed on 15th March 2022 via iRecord. 
 
-```{r}
+Most of the data were collected by volunteer naturalists with no defined sampling protocol, so are best described as "opportunistic".  
+
+```{r, warning = FALSE}
+# the data can be accessed from the W drive accessbible to members of the BRC
+
 dat <- read.csv("W:/PYWELL_SHARED/Pywell Projects/BRC/_BRC_dataflow/Research Datasets/Soldierflies/2022/Research dataset/Soldierflies_2022.csv")
 
+# available fields 
+
 names(dat)
+
+# some information on the provenance of the data
 
 dat$raw_dataset_name[1]
 
@@ -60,9 +75,11 @@ dat$date_of_capture[1]
 
 **2.4 Provide details of, and the justification for, all of the steps that you have taken to clean the data described above prior to analyses.**
 
-I modified the data described above in three ways. First, I removed records that were not resolved to one day. Second, I removed records that were duplicated in terms of date, grid cell and species name. And finally, I reprojected records collected in Northern Ireland from the Irish national grid (OSNI 1951) to the British national grid (OSGB 1936). My code can be seen below. 
+I modified the data described above in three ways. First, I removed records that were not resolved to one day. Second, I removed records that were duplicated in terms of date, grid cell and species name. And finally, I reprojected records collected in Northern Ireland from the Irish national grid (OSNI 1951) to the British national grid (OSGB 1936). This step enables the analysis of the dataset as a whole. 
 
-```{r}
+```{r, warning = FALSE}
+# Colin Harrower's BRCmap package is needed for processing the data (https://github.com/colinharrower/BRCmap)
+
 library(BRCmap)
 
 ## process species occurrence data
@@ -79,7 +96,7 @@ dat <- dat[- which(duplicated(dat[, c("recommended_name", "startdate", "monad")]
 
 dat <- dat[, c("recommended_name", "monad", "startdate")]
 
-# extract coordinates from grid references (needed by occAssess)
+# extract coordinates from grid references (needed by occAssess, the package used for analysis downstream)
 
 coords <- BRCmap::gr_let2num(gridref = dat$monad,
                              centre = TRUE,
@@ -89,7 +106,7 @@ dat <- cbind(dat, coords)
 
 # check if there are any coordinates on the OSNI projection
 
-table(coords$PROJECTION)
+any(coords$PROJECTION == "OSNI")
 
 # if yes then reproject these onto OSGB
 
@@ -155,15 +172,15 @@ dat <- rbind(dat, repeats)
 
 **3.1 At what geographic, temporal and taxonomic resolutions (i.e. scales or grain sizes) will you conduct your bias assessment?**
 
-I conducted the bias assessment at spatial and temporal resolutions of 1km and one year to match the statistical population about which I want to draw inferences (Table 2). However, it was not possible to assess the data at the species level; presence-only data say nothing about the spatial and temporal distribution of sampling where the focal species was not observed. Rather, I used the target group approach (Phillips et al., 2009) to approximate sampling effort, which is to say, I treated the spatial and temporal distribution of records for the whole taxonomic group (target group) as a proxy for the spatial and temporal distributions of sampling effort. In other words, if at least one species was recorded in some grid cell and at some time, then I assume that all species were searched for. 
+I conducted the bias assessment at spatial and temporal resolutions of 1km and one year to match the statistical population about which I want to draw inferences (Table 2). However, it was not possible to assess the data at the species level because presence-only data say nothing about the spatial and temporal distribution of sampling where the focal species was not observed. Rather, I used the target group approach (Phillips et al., 2009) to approximate sampling effort, which is to say, I treated the spatial and temporal distribution of records for the whole taxonomic group (target group) as a proxy for the spatial and temporal distributions of sampling effort. In other words, I assumed that all species were searched for where and when at least one species was recorded. 
 
 ## Geographic domain
 
 **3.2 Are the data sampled from a representative portion of geographical space in the domain of interest?** 
 
-To assess the geographic representativness of the data, I used what is called the Nearest Neighbour Index (NNI). The NNI is the ratio of the average nearest neighbour distances of the centroids of grid cells with records to the average nearest neighbour distances of simulated random distributions of the same density. Where the NNI is below 1, the data more clustered than a random distribution; where it is about 1, the data are approximately randomly distributed; and where it falls above 1, the data are overdispersed. Fig 1. clearly shows that the data are more clustered than a random distribution. 
+To assess the geographic representativness of the data, I used what is called the Nearest Neighbour Index (NNI). The NNI is the ratio of the average nearest neighbour distances of the centroids of grid cells with records to the average nearest neighbour distances of simulated random distributions of the same density. Where the NNI is below 1, the data more clustered than a random distribution; where it is about 1, the data are approximately randomly distributed; and where it falls above 1, the data are overdispersed. Fig 1. clearly shows that grid cells with at least one record, and grid cells that were visited on more than one date in the same year, are nonrandomly distributed in all years.  
 
-```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 1. Nearest neighbour index calculated for each year. The shaded band denotes the 5th to 95th percentiles calculated by bootstrapping over five simulated distributions."}
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 1. Nearest neighbour index calculated for each year. The shaded band denotes the 5th to 95th percentiles calculated by bootstrapping over five simulated distributions.", warning = FALSE}
 
 mask <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/SDMOutputs_Jan_Feb_2021/Bryophytes/Bry_986_LPT_1.asc") # mask layer needed to delimit the geographic domain. This is just a raster of the UK at 1km
 
@@ -200,7 +217,9 @@ ggplot2::ggplot(data = NNI$data, ggplot2::aes(x = as.numeric(Period) + 1969, y =
   ggplot2::theme(text = ggplot2::element_text(size = 25)) 
 ```
 
-```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 2. 1km grid cells in which at least one species was recorded between 1990 and 2020."}
+Fig. 2 shows the geographic distribution of 1km grid cells in which soldierflies have been recorded between 1970 and 2020. Looking at this figure it is clear that the majority of the data were recorded in England, whereas Scotland and Northern Ireland have been sampled to a lesser extent. This pattern is particularly evident when considering only grid cells with repeat visits (right hand panel in Fig. 2).
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 2. 1km grid cells in which at least one species was recorded between 1990 and 2020.", warning = FALSE}
 ## load required data 
 
 # UK shapefile from BRCmap
@@ -258,18 +277,124 @@ rasterVis::gplot(spatCov$rasters) +
 
 **3.3 Are your data sampled from the same portions of geographic space across time periods?**
 
-<insert text>
+To establish whether the data have been sampled from the same portion of geographic space over time, I mapped the proportion of the 51-year time series in which grid cells were sampled, and the proportion of years in which they were visited more than once (Fig. 3). The maps clearly show that the most grid cells were sampled in a very low proportion of years; indeed, across grid cells with at least one record, the average proportion of years with records is less than 4%. This indicates that the geographic distribution of sampling has changed over time, which has the potential to confound estimates of temporal trends in species' range sizes. 
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 3. The proportion of the 51-year time series in which a record was made in each grid cell (left panel) and in which each grid cell was visited more than once (right panel).", warning = FALSE}
+
+spatCov <- occAssess::assessSpatialCov(periods = periods,
+                            dat = dat,
+                            species = "recommended_name", 
+                            year = "year",
+                            identifier = "identifier",
+                            x = "EASTING", 
+                            y = "NORTHING",
+                            spatialUncertainty = "spatialUncertainty",
+                            res = 1000,
+                            output = "nPeriods",
+                            logCount = FALSE,
+                            returnRaster = TRUE)
+
+
+# plot 
+
+rasterVis::gplot(spatCov$rasters) +
+  ggplot2::geom_tile(ggplot2::aes(fill = value / 51)) +
+  ggplot2::facet_wrap(~variable) +
+  ggplot2::geom_polygon(data = mapGB, ggplot2::aes(x = long, 
+                                          y = lat, group = group), colour = "black", 
+               fill = myCol, inherit.aes = F) +
+  ggplot2::geom_polygon(data = mapIr, ggplot2::aes(x = long, 
+                                          y = lat, group = group), colour = "black", 
+               fill = myCol, inherit.aes = F) +
+  ggplot2::scale_fill_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0.4, na.value = myCol) + 
+  ggplot2::theme_linedraw() +
+  ggplot2::theme(axis.text.x=ggplot2::element_blank(),
+        axis.text.y=ggplot2::element_blank()) +
+  ggplot2::labs(fill = "Proportion
+of years
+sampled") +
+  ggplot2::labs(x = "",
+       y = "")  +
+  ggplot2::theme(strip.text.x = ggplot2::element_text(size = 20))
+
+# calculate the mean proportion of years in which grid cells were visited once and visited more than once 
+
+mean(raster::getValues(spatCov$rasters$all_data), na.rm=T) / 51
+
+mean(raster::getValues(spatCov$rasters$repeat_visits), na.rm=T) / 51
+
+
+```
 
 **3.4 If the answers to the above questions revealed any potential geographic biases, or temporal variation in geographic coverage, please explain, in detail, how you plan to mitigate them.** 
 
-<insert text>
+Mitigating the geographic biases described above will require susbtantial effort. New analytical approaches and forms of data manipulation will need to be tested. In the meantime, we should caveat any trends derived from these data. This should include an acknowledgement that the data are not representative of the UK as a whole-just England- and that information on detectability from repeat vists comes from an even smaller subset of locations, also mainly in England.
 
 ## Environmental domain
 
 **3.5 Are your data sampled from a representative portion of environmental space in the domain of interest?** 
 
-<insert text>
+It is widely suspected that recording has shifted towards urban centres over time. To test this I extracted the proportion of each 1km grid cell in the UK that was classed as "built up" in 2007 from UK CEH's land cover map (Morton et al., 2007). I then extracted these proportions for grid cells that were visited once and more than once in each year, and plotted them in Fig. 4. Two things stand out: 1) there has been a striking increase in urban recording since ca. 2011, and 2) cells visited more than once tend to be more built up than those visited once only, across all years. 
 
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 4. Extent to which cells that were visited (all_data) and visited more than once (repeat_vists) were built up (urban or suburban) across years. Boxes show the medians and interquartile ranges for each year; points denote outliers.", warning = FALSE}
+
+# load raster showing proportion of each 1km cell was is "built up" in 2007
+
+lc <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/targetLandCover2007/selectedCovs/built_up.asc")
+
+# for each record add the proportion of the cell on which it was recorded that was built up in 2007
+
+dat$built_up <- raster::extract(lc, 
+                                cbind(dat$EASTING, dat$NORTHING))
+
+# plot
+
+ggplot2::ggplot(data=dat[dat$year>=1970, ], ggplot2::aes(x=year, y=built_up, fill=identifier)) +
+  ggplot2::geom_boxplot() +
+  ggplot2::theme_linedraw() +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::labs(x = "",
+       y = "Proportion of cell classed as built up",
+       fill = "")
+```
+
+To assess the representativeness of grid cells that were visited once and more than once in climatic space, I used the standard 19 bioclimatic variables (e.g. precipitation of the hottest month, isothermality, etc.). I reduced the dimensionality of the data using a principal component analysis, defining climatic space in two dimensions using the first two principal components. I then plotted the distribution of the data from each year in climatic space, along with a "background" sample comprising the principal component scores at 10000 randomly distributed points across the UK.
+
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 4. Extent to which cells that were visited (all_data) and visited more than once (repeat_vists) were built up (urban or suburban) across years. Boxes show the medians and interquartile ranges for each year; points denote outliers.", warning = FALSE}
+# load bioclim data (usual 19 variables at 1km in the UK)
+
+biovars <- raster::stack(
+  list.files("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/bioVars/",
+             full.names = T,
+             pattern = ".asc"))
+
+# extract bioclim vars in grid cells with records
+
+envDat <- raster::extract(biovars, dat[, c("EASTING", "NORTHING")])
+
+# create a "background" sample for comparison: this is supposed to represent climatic space across the UK
+
+backgroundEnvDat <- raster::sampleRandom(biovars, size = 10000,
+                                         xy = F)
+
+envBias <- occAssess::assessEnvBias(dat = dat,
+                                    species = "recommended_name", 
+                                    year = "year",
+                                    identifier = "identifier",
+                                    x = "EASTING", 
+                                    y = "NORTHING",
+                                    spatialUncertainty = "spatialUncertainty",
+                                    envDat = envDat,
+                                    backgroundEnvDat = backgroundEnvDat,
+                                    xPC = 1,
+                                    yPC = 2,
+                                    periods = periods) # xPC and yPC indicate which principal components to set as the x and y axes,respectively
+
+envBias$plot +
+  ggplot2::guides(fill = "none",
+                  colour = "none")
+```
 **3.6 Are your data sampled from the same portion of environmental space across time periods?**
 
 <insert text>
