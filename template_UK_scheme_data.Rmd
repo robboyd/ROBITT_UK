@@ -7,6 +7,24 @@ output:
   pdf_document: default
   html_document: default
 ---
+
+<style type="text/css">
+
+body, td {
+   font-size: 14px;
+}
+code.r{
+  font-size: 10px;
+}
+pre {
+  font-size: 10px
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 # Background
 
 In this document I use ROBITT to assess the suitability of data from the Soldierflies and Allies recording scheme for the estimation of temporal trends in species' distributions. ROBITT comprises a number of questions designed to elicit information on the potential for biases in the data to undermine trend estimation. Generally, I answer each question using text and figures. I also provide the R code used to generate the figures and some simple statistics. Readers should not feel compelled to read the R code; the document is discernible without it.
@@ -15,9 +33,6 @@ In the BRC we have been developing a workflow to estimate trends in species' dis
 
 This Rmarkdown document relies on data stored on UK CEH's W (shared) drive. If you do not have access to this drive, then it will not work. All members of the BRC should have access. 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 # 1.	Iteration
 
 ### 1.1 ROBITT iteration number
@@ -334,34 +349,10 @@ Mitigating the geographic biases described above will require susbtantial effort
 
 **3.5 Are your data sampled from a representative portion of environmental space in the domain of interest?** 
 
-It is widely suspected that recording has shifted towards urban centres over time. To test this I extracted the proportion of each 1km grid cell in the UK that was classed as "built up" in 2007 from UK CEH's land cover map (Morton et al., 2007). I then extracted these proportions for grid cells that were visited once and more than once in each year, and plotted them in Fig. 4. Two things stand out: 1) there has been a striking increase in urban recording since ca. 2011, and 2) cells visited more than once tend to be more built up than those visited once only, across all years. 
+In this section I began by defining environmental space based on the standard 19 worldclim bioclimatic variables (e.g. temperature of the wettest month, isothermality, etc.). These data were originally derived from the [Met Office's HadUK grid dataset](https://www.metoffice.gov.uk/research/climate/maps-and-data/data/haduk-grid/datasets). I randomly placed 10,000 points across the UK, and then extracted the values of the 19 bioclimatic variables at each of their locations. I then conducted a principal component analysis of these data, and defined environmental space in the UK as their joint distribution on the first two principal components. I then mapped the distribution of the data from each year in environmental space (ellipses in Fig. 4). It is clear that the data are not representative of environmental space in the UK; however, what is less clear is whether this reflects a bias, or whether it reflects the fact that soldierflies and allies are truly concentrated in that portion of environmental space. 
 
-```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 4. Extent to which cells that were visited (all_data) and visited more than once (repeat_vists) were built up (urban or suburban) across years. Boxes show the medians and interquartile ranges for each year; points denote outliers.", warning = FALSE}
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 4. The distribution of records in environmental space. Environmental space is defined as the first two principal components of the standard 19 bioclimatic variables at 10,000 randomly-selected locations in the UK. The data from each year are shown as one ellipse for ease of interpretation, but note that, strictly speaking, using ellipses in this way is most appropriate where the data are normally distributed along both axes, which I did not check.", warning = FALSE}
 
-# load raster showing proportion of each 1km cell was is "built up" in 2007
-
-lc <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/targetLandCover2007/selectedCovs/built_up.asc")
-
-# for each record add the proportion of the cell on which it was recorded that was built up in 2007
-
-dat$built_up <- raster::extract(lc, 
-                                cbind(dat$EASTING, dat$NORTHING))
-
-# plot
-
-ggplot2::ggplot(data=dat[dat$year>=1970, ], ggplot2::aes(x=year, y=built_up, fill=identifier)) +
-  ggplot2::geom_boxplot() +
-  ggplot2::theme_linedraw() +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-  ggplot2::labs(x = "",
-       y = "Proportion of cell classed as built up",
-       fill = "")
-```
-
-To assess the representativeness of grid cells that were visited once and more than once in climatic space, I used the standard 19 bioclimatic variables (e.g. precipitation of the hottest month, isothermality, etc.). I reduced the dimensionality of the data using a principal component analysis, defining climatic space in two dimensions using the first two principal components. I then plotted the distribution of the data from each year in climatic space, along with a "background" sample comprising the principal component scores at 10000 randomly distributed points across the UK.
-
-
-```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 4. Extent to which cells that were visited (all_data) and visited more than once (repeat_vists) were built up (urban or suburban) across years. Boxes show the medians and interquartile ranges for each year; points denote outliers.", warning = FALSE}
 # load bioclim data (usual 19 variables at 1km in the UK)
 
 biovars <- raster::stack(
@@ -393,25 +384,78 @@ envBias <- occAssess::assessEnvBias(dat = dat,
 
 envBias$plot +
   ggplot2::guides(fill = "none",
-                  colour = "none")
+                  colour = "none") +
+  ggplot2::theme(strip.text.x = ggplot2::element_text(size = 20))
 ```
+
+
 **3.6 Are your data sampled from the same portion of environmental space across time periods?**
 
-<insert text>
+Fig 4. shows the distribution of the data in climate space in each year. Although the data were not collected in a representative portion of environmental space, they were, generally, collected from the same portion of climate space across years.
+
+Whilst the data appear to have been sampled from a reasonably consistent portion of climate space over time, there are other features of the environment to consider. It widely suspected, for example, that recording has shifted towards urban centres over time. To test this I extracted the proportion of each 1km grid cell in the UK that was classed as "built up" in 2007 from UK CEH's land cover map (Morton et al., 2007). I then extracted these proportions for grid cells that were visited once and more than once in each year and plotted them in Fig. 4. Two things stand out: 1) there has been a striking increase in urban recording since ca. 2011, and 2) cells visited more than once tend to be more built up than those visited once only, across all years. 
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 5. Extent to which cells that were visited (all_data) and visited more than once (repeat_vists) were built up (urban or suburban) across years. Boxes show the medians and interquartile ranges for each year; points denote outliers.", warning = FALSE}
+
+# load raster showing proportion of each 1km cell was is "built up" in 2007
+
+lc <- raster::raster("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/targetLandCover2007/selectedCovs/built_up.asc")
+
+# for each record add the proportion of the cell on which it was recorded that was built up in 2007
+
+dat$built_up <- raster::extract(lc, 
+                                cbind(dat$EASTING, dat$NORTHING))
+
+# plot
+
+ggplot2::ggplot(data=dat[dat$year>=1970, ], ggplot2::aes(x=year, y=built_up, fill=identifier)) +
+  ggplot2::geom_boxplot() +
+  ggplot2::theme_linedraw() +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::labs(x = "",
+       y = "Proportion of cell classed as built up",
+       fill = "") 
+```
 
 **3.7 If the answers to the above questions revealed any potential environmental biases, or temporal variation in environmental coverage, please explain, in detail, how you plan to mitigate them.** 
 
-<insert text>
+Whilst the data were not collected from a representative portion of climate space in the UK, it is not clear whether this reflects sampling bias or the true distributions of the species. I will speak to Martin Harvey, the national expert for this taxon group, to see if there is more information that can be brought to bear on this question. 
+
+What is clear is that there has been a shift towards recording in urban areas over time, including repeat visits. It is easy to imagine that species' trends and detection probabilities might be different in urban areas than elsewhere. As with the geographic biases, there are no quick fixes for this problem. We will need to develop new analytical approaches or forms of data manipulation. In the meantime, we should clearly acknowledge the fact that any trends derived from these data will likely increasingly reflect urban areas over time. 
 
 ## Taxonomic domain (or other organismal domain, e.g., phylogenetic, trait space etc.)
 
 **Is the sampled portion of the taxonomic (or phylogenetic, trait or other space if more relevant) space representative of the taxonomic (or other) domain of interest?**
 
-<insert text>
+Data are available for 154 of the 158 species known to occur in the UK (Martin Harvey, pers. comm.).
+
+```{r}
+length(unique(dat[dat$year >= 1970, ]$recommended_name))
+```
 
 **3.9 Do your data pertain to the same taxa/taxonomic domain across time periods?** 
 
-<insert text>
+Whilst taxonomic coverage appears to be excellent across the dataset as a whole, it is less complete in any given year, particularly in the early years (i.e. pre 1990; Fig. 6). Moreoever, much fewer species were recorded on grid cells that were visited more than once in each year; for those species not recorded on grid cells with multiple visits in a year, detection probabilities will be difficult to estimate. 
+
+
+
+```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 6. The number of species recorded in each year in the full dataset and just those data that are repeat visits.", warning = FALSE}
+nSpec <- occAssess::assessSpeciesNumber(dat = dat,
+                    species = "recommended_name", 
+                    year = "year",
+                    identifier = "identifier",
+                    x = "EASTING", 
+                    y = "NORTHING",
+                    spatialUncertainty = "spatialUncertainty",
+                    periods = periods)
+
+nSpec$plot + 
+  ggplot2::aes(y = val/158, x = Period+1969) +
+  ggplot2::labs(y="Proportion of 
+species recorded",
+       x="") +
+  ggplot2::theme(text = ggplot2::element_text(size = 25))
+```
 
 **3.10 If the answers to the above questions revealed any potential taxonomic biases, or temporal variation in taxonomic coverage, please explain, in detail, how you plan to mitigate them.** 
 
