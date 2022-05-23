@@ -220,7 +220,7 @@ NNI <- assessSpatialBias(dat = dat,
                          identifier = "identifier",
                          x = "EASTING", 
                          y = "NORTHING",
-                         spatialUncertainty = "spatialUncertainty",) 
+                         spatialUncertainty = "spatialUncertainty") 
 
 
 ggplot(data = NNI$data, aes(x = as.numeric(Period) + 1969, y = mean,
@@ -250,3 +250,59 @@ ggplot(data=dat[dat$year>=1970, ], aes(x=year, y=built_up, fill=identifier)) +
   labs(x = "",
        y = "Proportion of cell classed as built up") +
   labs(fill = "")
+
+## calculate distribution in bioclimatic space
+
+# load bioclim data (usual 19 variables at 1km in the UK)
+
+biovars <- raster::stack(
+  list.files("W:/PYWELL_SHARED/Pywell Projects/BRC/Rob Boyd/TSDA/SDMs/Data/bioVars/",
+             full.names = T,
+             pattern = ".asc"))
+
+# extract bioclim vars in grid cells with records
+
+envDat <- raster::extract(biovars, dat[, c("EASTING", "NORTHING")])
+
+# create a "background" sample for comparison: this is supposed to represent climatic space across the UK
+
+backgroundEnvDat <- raster::sampleRandom(biovars, size = 10000,
+                                         xy = F)
+envBias <- occAssess::assessEnvBias(dat = dat,
+                                    species = "recommended_name", 
+                                    year = "year",
+                                    identifier = "identifier",
+                                    x = "EASTING", 
+                                    y = "NORTHING",
+                                    spatialUncertainty = "spatialUncertainty",
+                                    envDat = envDat,
+                                    backgroundEnvDat = backgroundEnvDat,
+                                    xPC = 1,
+                                    yPC = 2,
+                                    periods = periods) # xPC and yPC indicate which principal components to set as the x and y axes,respectively
+
+envBias$plot +
+  guides(fill = "none",
+         colour = "none")
+  
+length(unique(dat[dat$year >= 1970, ]$recommended_name))
+
+
+nSpec <- occAssess::assessSpeciesNumber(dat = dat,
+                    species = "recommended_name", 
+                    year = "year",
+                    identifier = "identifier",
+                    x = "EASTING", 
+                    y = "NORTHING",
+                    spatialUncertainty = "spatialUncertainty",
+                    periods = periods)
+
+nSpec$plot + 
+  ggplot2::aes(y = val/158, x = Period+1969) +
+  ggplot2::labs(y="Proportion of 
+species recorded",
+       x="") +
+  ggplot2::theme(text = ggplot2::element_text(size = 25))
+  
+table(dat[dat$year >= 1970, ]$recommended_name, dat[dat$year >= 1970, ]$year)
+

@@ -64,9 +64,7 @@ To 1) estimate temporal trends in species' occupancy (proportion of occupied gri
 
 **2.3 From where were your data acquired (please provide citations, including a DOI, wherever possible)? What are their key features in respect of the inferential aims of your study (see the guidance document for examples)?**
 
-The data are presence-only records of soldierfly occurrences recorded in the UK from 1990-2020. The data were collated by the Soldierfly and Allies recording scheme and accessed on 15th March 2022 via iRecord. 
-
-Most of the data were collected by volunteer naturalists with no defined sampling protocol, so are best described as "opportunistic".  
+The data are presence-only records of soldierfly and allies' recorded in the UK from 1990-2020. The data were collated by the Soldierfly and Allies recording scheme and accessed on 15th March 2022 via iRecord. Most of the data were collected by volunteer naturalists with no defined sampling protocol, so are best described as "opportunistic".  
 
 ```{r, warning = FALSE}
 # the data can be accessed from the W drive accessbible to members of the BRC
@@ -115,7 +113,7 @@ dat <- dat[, c("recommended_name", "monad", "startdate")]
 
 coords <- BRCmap::gr_let2num(gridref = dat$monad,
                              centre = TRUE,
-                             return_projection = TRUE)
+                             return_projection = TRUE) # assumes data were collected at centre of the grid cell
 
 dat <- cbind(dat, coords)
 
@@ -193,7 +191,7 @@ I conducted the bias assessment at spatial and temporal resolutions of 1km and o
 
 **3.2 Are the data sampled from a representative portion of geographical space in the domain of interest?** 
 
-To assess the geographic representativness of the data, I used what is called the Nearest Neighbour Index (NNI). The NNI is the ratio of the average nearest neighbour distances of the centroids of grid cells with records to the average nearest neighbour distances of simulated random distributions of the same density. Where the NNI is below 1, the data more clustered than a random distribution; where it is about 1, the data are approximately randomly distributed; and where it falls above 1, the data are overdispersed. Fig 1. clearly shows that grid cells with at least one record, and grid cells that were visited on more than one date in the same year, are nonrandomly distributed in all years.  
+To assess the geographic representativness of the data, I used what is called the Nearest Neighbour Index (NNI). The NNI is the ratio of the average nearest neighbour distances of the centroids of grid cells with records to the average nearest neighbour distances of simulated random distributions of the same density. Where the NNI is below 1, the data more clustered than a random distribution; where it is about 1, the data are approximately randomly distributed; and where it falls above 1, the data are overdispersed. Fig 1. clearly shows that grid cells visited in each year are more clustered than a random distribution. Similarly, grid cells visited more than once in each year are also clustered.
 
 ```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 1. Nearest neighbour index calculated for each year. The shaded band denotes the 5th to 95th percentiles calculated by bootstrapping over five simulated distributions.", warning = FALSE}
 
@@ -232,7 +230,9 @@ ggplot2::ggplot(data = NNI$data, ggplot2::aes(x = as.numeric(Period) + 1969, y =
   ggplot2::theme(text = ggplot2::element_text(size = 25)) 
 ```
 
-Fig. 2 shows the geographic distribution of 1km grid cells in which soldierflies have been recorded between 1970 and 2020. Looking at this figure it is clear that the majority of the data were recorded in England, whereas Scotland and Northern Ireland have been sampled to a lesser extent. This pattern is particularly evident when considering only grid cells with repeat visits (right hand panel in Fig. 2).
+The left panel in Fig. 2 shows the geographic distribution of 1km grid cells in which soldierflies and allies have been recorded between 1970 and 2020. Looking at this figure it is clear that the majority of the data were recorded in England. 
+
+The right hand panel in Fig. 2 shows the geographic distribution of 1km grid cells that were visited more than once in at least one year. These grid cells are even more biased towards and England and the South East in particular.
 
 ```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 2. 1km grid cells in which at least one species was recorded between 1990 and 2020.", warning = FALSE}
 ## load required data 
@@ -287,7 +287,7 @@ rasterVis::gplot(spatCov$rasters) +
        y = "") +
   ggplot2::scale_fill_continuous(na.value = myCol) +
   ggplot2::guides(fill = "none") +
-  ggplot2::theme(strip.text.x = ggplot2::element_text(size = 20))
+  ggplot2::theme(text = ggplot2::element_text(size = 25))
 ```
 
 **3.3 Are your data sampled from the same portions of geographic space across time periods?**
@@ -330,7 +330,7 @@ of years
 sampled") +
   ggplot2::labs(x = "",
        y = "")  +
-  ggplot2::theme(strip.text.x = ggplot2::element_text(size = 20))
+  ggplot2::theme(text = ggplot2::element_text(size = 25))
 
 # calculate the mean proportion of years in which grid cells were visited once and visited more than once 
 
@@ -343,13 +343,13 @@ mean(raster::getValues(spatCov$rasters$repeat_visits), na.rm=T) / 51
 
 **3.4 If the answers to the above questions revealed any potential geographic biases, or temporal variation in geographic coverage, please explain, in detail, how you plan to mitigate them.** 
 
-Mitigating the geographic biases described above will require susbtantial effort. New analytical approaches and forms of data manipulation will need to be tested. In the meantime, we should caveat any trends derived from these data. This should include an acknowledgement that the data are not representative of the UK as a whole-just England- and that information on detectability from repeat vists comes from an even smaller subset of locations, also mainly in England.
+Mitigating the geographic biases revealed above will require susbtantial effort. New analytical approaches and forms of data manipulation will need to be tested. In the meantime, we should caveat any trends derived from these data. This should include an acknowledgement that the data are not representative of the UK as a whole-just England- and that information on detectability from repeat vists comes from an even smaller subset of locations, also mainly in England.
 
 ## Environmental domain
 
 **3.5 Are your data sampled from a representative portion of environmental space in the domain of interest?** 
 
-In this section I began by defining environmental space based on the standard 19 worldclim bioclimatic variables (e.g. temperature of the wettest month, isothermality, etc.). These data were originally derived from the [Met Office's HadUK grid dataset](https://www.metoffice.gov.uk/research/climate/maps-and-data/data/haduk-grid/datasets). I randomly placed 10,000 points across the UK, and then extracted the values of the 19 bioclimatic variables at each of their locations. I then conducted a principal component analysis of these data, and defined environmental space in the UK as their joint distribution on the first two principal components. I then mapped the distribution of the data from each year in environmental space (ellipses in Fig. 4). It is clear that the data are not representative of environmental space in the UK; however, what is less clear is whether this reflects a bias, or whether it reflects the fact that soldierflies and allies are truly concentrated in that portion of environmental space. 
+In this section I began by defining climate space based on the standard 19 worldclim bioclimatic variables (e.g. temperature of the wettest month, isothermality, etc.). These data were originally derived from the [Met Office's HadUK grid dataset](https://www.metoffice.gov.uk/research/climate/maps-and-data/data/haduk-grid/datasets). I randomly placed 10,000 points across the UK, and then extracted the values of the 19 bioclimatic variables at each of their locations. I then conducted a principal component analysis of these data, and defined climate space in the UK as their joint distribution on the first two principal components. To assess the data's representativness, I mapped the distribution of the data from each year in climate space (ellipses in Fig. 4). It is clear that the data are not representative of climate space in the UK; however, what is less clear is whether this reflects a bias, or whether it reflects the fact that soldierflies and allies are truly concentrated in that portion of environmental space. 
 
 ```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 4. The distribution of records in environmental space. Environmental space is defined as the first two principal components of the standard 19 bioclimatic variables at 10,000 randomly-selected locations in the UK. The data from each year are shown as one ellipse for ease of interpretation, but note that, strictly speaking, using ellipses in this way is most appropriate where the data are normally distributed along both axes, which I did not check.", warning = FALSE}
 
@@ -385,7 +385,7 @@ envBias <- occAssess::assessEnvBias(dat = dat,
 envBias$plot +
   ggplot2::guides(fill = "none",
                   colour = "none") +
-  ggplot2::theme(strip.text.x = ggplot2::element_text(size = 20))
+  ggplot2::theme(text = ggplot2::element_text(size = 25))
 ```
 
 
@@ -414,7 +414,8 @@ ggplot2::ggplot(data=dat[dat$year>=1970, ], ggplot2::aes(x=year, y=built_up, fil
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
   ggplot2::labs(x = "",
        y = "Proportion of cell classed as built up",
-       fill = "") 
+       fill = "") +
+  ggplot2::theme(text = ggplot2::element_text(size = 20))
 ```
 
 **3.7 If the answers to the above questions revealed any potential environmental biases, or temporal variation in environmental coverage, please explain, in detail, how you plan to mitigate them.** 
@@ -437,8 +438,6 @@ length(unique(dat[dat$year >= 1970, ]$recommended_name))
 
 Whilst taxonomic coverage appears to be excellent across the dataset as a whole, it is less complete in any given year, particularly in the early years (i.e. pre 1990; Fig. 6). Moreoever, much fewer species were recorded on grid cells that were visited more than once in each year; for those species not recorded on grid cells with multiple visits in a year, detection probabilities will be difficult to estimate. 
 
-
-
 ```{r, fig.width=12, fig.height=8, dpi=200, fig.cap="Figure 6. The number of species recorded in each year in the full dataset and just those data that are repeat visits.", warning = FALSE}
 nSpec <- occAssess::assessSpeciesNumber(dat = dat,
                     species = "recommended_name", 
@@ -457,15 +456,23 @@ species recorded",
   ggplot2::theme(text = ggplot2::element_text(size = 25))
 ```
 
+The fact that only a fraction of species are recorded in any given year implies that the composition of species recorded likely changes over time. To test this more formally, I performed a Chi Square test of independence on a contingency table in which the rows represent species and the columns represent years. There is strong evidence that different species are recorded in different years (p < 0.001). 
+
+```{r}
+tab <- table(dat[dat$year >= 1970 & dat$identifier == "all_data", ]$recommended_name, dat[dat$year >= 1970 & dat$identifier == "all_data", ]$year)
+
+chisq.test(tab)
+```
+
 **3.10 If the answers to the above questions revealed any potential taxonomic biases, or temporal variation in taxonomic coverage, please explain, in detail, how you plan to mitigate them.** 
 
-<insert text>
+Mitigating the taxonomic biases revealed in this section is difficult because there is a trade-off: one could reduce the effects of temporal variation in taxonomic coverage by, say, including only those species recorded in every year; however, this would obviously reduce overall taxonomic coverage. A decision needs to be made then, about whether it is more important to include as many species as possible, or to admit we cannot say anything about most species and only focus on those that have been sampled consistently over time. Only 22 species have been sampled in every year. 
 
 ## Other potential biases
 
 **3.11 Are there other potential temporal biases in your data that relate to variables other than ecological states?**
 
-<insert text>
+As our research group use occupancy models to estime species' trends, it was important to consider the spatial, temporal and environmental distributions of repeat visits; these are needed for the detection component of the model. As I have assessed the repeat visit data throughout, information on their biases and how they should be mitigated can be found in my answers to the earlier questions. 
 
 **3.12 Are you aware of any other potential biases not covered by the above questions that might cause problems for your inferences?**
 
