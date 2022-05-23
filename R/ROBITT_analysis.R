@@ -304,5 +304,15 @@ species recorded",
        x="") +
   ggplot2::theme(text = ggplot2::element_text(size = 25))
   
-table(dat[dat$year >= 1970, ]$recommended_name, dat[dat$year >= 1970, ]$year)
+tab <- table(dat[dat$year >= 1970, ]$recommended_name, dat[dat$year >= 1970, ]$year)
+
+head(tab)
+
+chisq.test(tab)
+
+tab[tab==0] <- NA
+
+length(which(complete.cases(tab)))
+
+
 
